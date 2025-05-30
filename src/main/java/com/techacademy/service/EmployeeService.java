@@ -124,7 +124,8 @@ public class EmployeeService {
     public ErrorKinds update(Employee employee) {
     	
     	ErrorKinds result = employeePasswordCheck(employee);
-        if (ErrorKinds.CHECK_OK != result) {
+    	if (employee.getPassword() != null && !employee.getPassword().isEmpty()) {
+    	}else if (ErrorKinds.CHECK_OK != result) {
             return result;
         }
         
@@ -149,3 +150,4 @@ public class EmployeeService {
     
 
 }
+

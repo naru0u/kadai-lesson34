@@ -64,7 +64,7 @@ public class EmployeeController {
     public String postUpdate(@PathVariable("code") String code, @ModelAttribute Employee employee,BindingResult res) {
     	
     	Employee upEmployee = employeeService.findByCode(code);
-
+    	
         if (employee.getPassword() == null || employee.getPassword().isEmpty()) {
             
             employee.setPassword(upEmployee.getPassword());
