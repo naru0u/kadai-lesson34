@@ -123,17 +123,18 @@ public class EmployeeService {
     @Transactional
     public ErrorKinds update(Employee employee) {
     	
-    	ErrorKinds result = employeePasswordCheck(employee);
-    	if (employee.getPassword() != null && !employee.getPassword().isEmpty()) {
-    	}else if (ErrorKinds.CHECK_OK != result) {
-            return result;
-        }
-        
-        Employee exist = findByCode(employee.getCode());
-
+    	Employee exist = findByCode(employee.getCode());
         if (exist == null){
         	return null;
         }
+        
+        ErrorKinds result = employeePasswordCheck(employee);
+        if (employee.getPassword() == null || employee.getPassword().isEmpty()) {
+            employee.setPassword(exist.getPassword());
+        }else if (ErrorKinds.CHECK_OK != result) {
+             return result;
+         }
+           
         exist.setName(employee.getName());
         exist.setPassword(employee.getPassword());
         exist.setRole(employee.getRole());

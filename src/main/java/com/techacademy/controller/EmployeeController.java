@@ -52,28 +52,42 @@ public class EmployeeController {
     
     //*従業員更新画面
     @GetMapping(value = "/{code}/update")
-     public String update(@PathVariable("code") String code, Model model) {
+     public String update(@PathVariable("code") String code, Model model,@ModelAttribute Employee employee) {
     	
-    	model.addAttribute("employee",employeeService.findByCode(code));
+    	if (code != null) {
+    		employee = employeeService.findByCode(code);
+    		}
+    		model.addAttribute("code", employee.getCode());
+    		employee.setPassword("");
+    		model.addAttribute("employee", employee);
+    		
     	
     	return "employees/update";
     }
 
     //*従業員更新処理
     @PostMapping(value = "/{code}/update")
-    public String postUpdate(@PathVariable("code") String code, @ModelAttribute Employee employee,BindingResult res) {
+    public String postUpdate(@PathVariable("code") String code, @ModelAttribute @Validated Employee employee,BindingResult res,Model model) {
     	
-    	Employee upEmployee = employeeService.findByCode(code);
-    	
-        if (employee.getPassword() == null || employee.getPassword().isEmpty()) {
-            
-            employee.setPassword(upEmployee.getPassword());
+        if (res.hasErrors()) {
+            return update(null,model,employee);
         }
-
-    	employeeService.update(employee);
-    	
+        
+        ErrorKinds result = employeeService.update(employee);
+        if(ErrorMessage.contains(result)) {
+        	model.addAttribute(ErrorMessage.getErrorName(result),ErrorMessage.getErrorValue(result));
+        	return update(null,model,employee);
+        }
+        
+        employeeService.update(employee);
     	return "redirect:/employees";
+    	
+    	
+    	
+    	
     }
+    
+    
     
     
 
