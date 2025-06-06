@@ -78,18 +78,10 @@ public class EmployeeController {
         	model.addAttribute(ErrorMessage.getErrorName(result),ErrorMessage.getErrorValue(result));
         	return update(null,model,employee);
         }
-        
-        employeeService.update(employee);
+
     	return "redirect:/employees";
-    	
-    	
-    	
-    	
+
     }
-    
-    
-    
-    
 
     // 従業員新規登録画面
     @GetMapping(value = "/add")
