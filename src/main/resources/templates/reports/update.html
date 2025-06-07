@@ -24,8 +24,9 @@
                                         <label class="form-label" for="day">日付</label>
                                         <p class="mb-1"></p>
                                         <div class="col-md-7">
-                                            <input class="form-control" type="date" placeholder="${#temporals.format(report.reportDate, 'yyyy-MM-dd')}" th:field="*{reportDate}" th:errorclass="err" id="reportDate">
+                                            <input class="form-control" type="date" th:field="*{reportDate}" th:errorclass="err" id="reportDate">
                                             <span th:errors="*{reportDate}" class="text-danger"></span>
+                                            <span th:if="${reportDateError} neq null" th:text="${reportDateError}" class="text-danger"></span>
                                         </div>
                                     </div>
                                     <div class="mb-3">

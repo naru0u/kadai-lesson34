@@ -1,7 +1,6 @@
 package com.techacademy.service;
 
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -27,6 +26,11 @@ public class ReportService {
 	// 日報一覧表示処理
     public List<Report> findAll() {
         return reportRepository.findAll();
+    }
+    
+    //一般従業員一覧表示
+    public List<Report> findByEmployee(Employee employee) {
+        return reportRepository.findByEmployee(employee);
     }
 
     // 1件を検索

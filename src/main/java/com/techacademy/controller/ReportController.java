@@ -1,7 +1,8 @@
 package com.techacademy.controller;
 
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -16,6 +17,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import com.techacademy.constants.ErrorKinds;
 import com.techacademy.constants.ErrorMessage;
 import com.techacademy.entity.Employee;
+import com.techacademy.entity.Employee.Role;
 import com.techacademy.entity.Report;
 import com.techacademy.service.EmployeeService;
 import com.techacademy.service.ReportService;
@@ -37,13 +39,25 @@ public class ReportController {
 
     // 日報一覧画面
     @GetMapping
-    public String list(Model model) {
+    public String list(Model model, @AuthenticationPrincipal UserDetail userDetail) {
+        
+        String username = userDetail.getUsername();
+        Employee employee = employeeService.findByCode(username);
 
-        model.addAttribute("listSize", reportService.findAll().size());
-        model.addAttribute("reportList", reportService.findAll());
+        List<Report> reports;
+
+        if (employee.getRole() == Role.GENERAL) {
+            reports = reportService.findByEmployee(employee);
+        } else {
+            reports = reportService.findAll();
+        }
+
+        model.addAttribute("listSize", reports.size());
+        model.addAttribute("reportList", reports);
 
         return "reports/list";
     }
+
 
     // 日報詳細画面
     @GetMapping(value = "/{id}/")
@@ -55,14 +69,9 @@ public class ReportController {
     
     //*従業員更新画面
     @GetMapping(value = "/{id}/update")
-     public String update(@PathVariable("id") String id, Model model,@ModelAttribute Report report) {
+     public String update(@PathVariable("id") String id, Model model) {
     	
-    	if (id != null) {
-    		report = reportService.findById(id);
-    		}
-    		model.addAttribute("id", report.getId());
-    		report.setTitle(report.getTitle());
-    		report.setContent(report.getContent());
+    		Report report = reportService.findById(id);
     		model.addAttribute("report", report);
     		
     	
@@ -74,7 +83,15 @@ public class ReportController {
     public String postUpdate(@PathVariable("id") String id, @ModelAttribute @Validated Report report ,BindingResult res,Model model) {
     	
         if (res.hasErrors()) {
-            return update(null,model,report);
+            return update(null,model);
+        }
+        
+      //重複チェック
+        ErrorKinds result = reportService.update(report,id);
+
+        if (result == ErrorKinds.DATECHECK_ERROR) {
+        	model.addAttribute(ErrorMessage.getErrorName(result), ErrorMessage.getErrorValue(result));
+            return update(id,model);
         }
         
 
@@ -112,7 +129,7 @@ public class ReportController {
         //重複チェック
         ErrorKinds result = reportService.save(report);
 
-        if (ErrorMessage.contains(result)) {
+        if (result == ErrorKinds.DATECHECK_ERROR) {
         	model.addAttribute(ErrorMessage.getErrorName(result), ErrorMessage.getErrorValue(result));
             return create(report, null);
         }
