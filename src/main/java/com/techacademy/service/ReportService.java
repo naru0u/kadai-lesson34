@@ -1,6 +1,7 @@
 package com.techacademy.service;
 
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -8,6 +9,8 @@ import java.util.Optional;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.techacademy.constants.ErrorKinds;
+import com.techacademy.entity.Employee;
 import com.techacademy.entity.Report;
 import com.techacademy.repository.ReportRepository;
 
@@ -37,7 +40,14 @@ public class ReportService {
     
     // 日報登録
     @Transactional
-    public Report save(Report report) {
+    public ErrorKinds save(Report report) {
+    	
+    	List<Report> existReports = reportRepository.findByEmployeeAndReportDate(
+                report.getEmployee(), report.getReportDate());
+
+            if (!existReports.isEmpty()) {
+            	return ErrorKinds.DATECHECK_ERROR;
+            }
  
     	report.setDeleteFlg(false);
 
@@ -45,21 +55,33 @@ public class ReportService {
         report.setCreatedAt(now);
         report.setUpdatedAt(now);
         
-    	return reportRepository.save(report);
+    	reportRepository.save(report);
+    	return ErrorKinds.SUCCESS;
     	
     }
     
     //　日報更新
     @Transactional
-    public Report update(Report report) {
+    public ErrorKinds update(Report report,String id) {
     	
-        report.setTitle(report.getTitle());
-        report.setContent(report.getContent());
-        report.setReportDate(report.getReportDate());
+    	List<Report> existReports = reportRepository.findByEmployeeAndReportDate(
+                report.getEmployee(), report.getReportDate());
+
+            if (!existReports.isEmpty()) {
+            	return ErrorKinds.DATECHECK_ERROR;
+            }
+
+    	
+    	Report reports = findById(id);
+    	
+        reports.setTitle(report.getTitle());
+        reports.setContent(report.getContent());
+        reports.setReportDate(report.getReportDate());
         
         LocalDateTime now = LocalDateTime.now();
-        report.setUpdatedAt(now);
-    	return reportRepository.save(report);
+        reports.setUpdatedAt(now);
+    	reportRepository.save(reports);
+    	return ErrorKinds.SUCCESS;
     }
     
     //　日報削除

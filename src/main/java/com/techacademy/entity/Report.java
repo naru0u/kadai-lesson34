@@ -31,7 +31,6 @@ public class Report {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(length = 10)
-    @NotNull
     private Integer id;
     
     //日付

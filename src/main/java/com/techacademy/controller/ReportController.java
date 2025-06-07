@@ -1,6 +1,7 @@
 package com.techacademy.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -12,6 +13,8 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 
+import com.techacademy.constants.ErrorKinds;
+import com.techacademy.constants.ErrorMessage;
 import com.techacademy.entity.Employee;
 import com.techacademy.entity.Report;
 import com.techacademy.service.EmployeeService;
@@ -74,7 +77,8 @@ public class ReportController {
             return update(null,model,report);
         }
         
-        reportService.update(report);
+
+        reportService.update(report,id);
     	return "redirect:/reports";
 
     }
@@ -94,7 +98,7 @@ public class ReportController {
 
     // 日報新規登録処理
     @PostMapping(value = "/add")
-    public String add(@Validated Report report, BindingResult res,@AuthenticationPrincipal UserDetail userDetail) {
+    public String add(@Validated Report report, BindingResult res,@AuthenticationPrincipal UserDetail userDetail,Model model) {
 
     	String name = userDetail.getUsername();
         Employee employee = employeeService.findByCode(name);
@@ -105,8 +109,17 @@ public class ReportController {
             return create(report,null);
         }
         
-        reportService.save(report);
+        //重複チェック
+        ErrorKinds result = reportService.save(report);
+
+        if (ErrorMessage.contains(result)) {
+        	model.addAttribute(ErrorMessage.getErrorName(result), ErrorMessage.getErrorValue(result));
+            return create(report, null);
+        }
+        
+        //reportService.save(report);
         return "redirect:/reports";
+        
     }
 
     // 従業員削除処理
