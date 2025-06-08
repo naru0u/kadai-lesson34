@@ -61,41 +61,43 @@ public class ReportController {
 
     // 日報詳細画面
     @GetMapping(value = "/{id}/")
-    public String detail(@PathVariable("id") String id, Model model) {
+    public String detail(@PathVariable("id") Integer id, Model model) {
 
         model.addAttribute("report", reportService.findById(id));
         return "reports/detail";
     }
     
-    //*従業員更新画面
+    //*日報更新画面
     @GetMapping(value = "/{id}/update")
-     public String update(@PathVariable("id") String id, Model model) {
+     public String update(@PathVariable("id") Integer id, Model model) {
     	
-    		Report report = reportService.findById(id);
-    		model.addAttribute("report", report);
-    		
+    	if(id != null) {
+    		model.addAttribute("report",reportService.findById(id));
+    		}
     	
     	return "reports/update";
     }
 
-    //*従業員更新処理
+    //*日報更新処理
     @PostMapping(value = "/{id}/update")
-    public String postUpdate(@PathVariable("id") String id, @ModelAttribute @Validated Report report ,BindingResult res,Model model) {
+    public String postUpdate(@PathVariable("id") Integer id, @ModelAttribute @Validated Report report ,BindingResult res,@AuthenticationPrincipal UserDetail userDetail,Model model) {
+    	
+    	String name = userDetail.getUsername();
+        Employee employee = employeeService.findByCode(name);
+        report.setEmployee(employee);
     	
         if (res.hasErrors()) {
             return update(null,model);
         }
         
       //重複チェック
-        ErrorKinds result = reportService.update(report,id);
+        ErrorKinds result = reportService.update(report);
 
-        if (result == ErrorKinds.DATECHECK_ERROR) {
+        if (ErrorMessage.contains(result)) {
         	model.addAttribute(ErrorMessage.getErrorName(result), ErrorMessage.getErrorValue(result));
-            return update(id,model);
+            return update(null,model);
         }
         
-
-        reportService.update(report,id);
     	return "redirect:/reports";
 
     }
@@ -134,14 +136,13 @@ public class ReportController {
             return create(report, null);
         }
         
-        //reportService.save(report);
         return "redirect:/reports";
         
     }
 
     // 従業員削除処理
     @PostMapping(value = "/{id}/delete")
-    public String delete(@PathVariable("id") String id, @AuthenticationPrincipal UserDetail userDetail, Model model) {
+    public String delete(@PathVariable("id") Integer id, @AuthenticationPrincipal UserDetail userDetail, Model model) {
 
     	reportService.delete(id);
     	

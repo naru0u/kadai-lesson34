@@ -17,10 +17,11 @@ import com.techacademy.repository.ReportRepository;
 public class ReportService {
 	
 	private final ReportRepository reportRepository;
-	
+
 	public ReportService(ReportRepository reportRepository) {
         this.reportRepository = reportRepository;
 	}
+	
 	
 	
 	// 日報一覧表示処理
@@ -34,7 +35,7 @@ public class ReportService {
     }
 
     // 1件を検索
-    public Report findById(String id) {
+    public Report findById(Integer id) {
         // findByIdで検索
         Optional<Report> option = reportRepository.findById(id);
         // 取得できなかった場合はnullを返す
@@ -66,18 +67,17 @@ public class ReportService {
     
     //　日報更新
     @Transactional
-    public ErrorKinds update(Report report,String id) {
+    public ErrorKinds update(Report report) {
+    	Report reports = findById(report.getId());
     	
-    	List<Report> existReports = reportRepository.findByEmployeeAndReportDate(
+    	List<Report> exist = reportRepository.findByEmployeeAndReportDate(
                 report.getEmployee(), report.getReportDate());
 
-            if (!existReports.isEmpty()) {
+            if (!exist.isEmpty()) {
             	return ErrorKinds.DATECHECK_ERROR;
             }
+            
 
-    	
-    	Report reports = findById(id);
-    	
         reports.setTitle(report.getTitle());
         reports.setContent(report.getContent());
         reports.setReportDate(report.getReportDate());
@@ -90,8 +90,11 @@ public class ReportService {
     
     //　日報削除
     @Transactional
-    public void delete(String id) {
-    	reportRepository.deleteById(id);
+    public void delete(Integer id) {
+    	Report report = findById(id);
+    	
+    	report.setDeleteFlg(true); 
+        reportRepository.save(report);
     }
     
     
